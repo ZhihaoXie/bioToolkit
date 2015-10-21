@@ -19,7 +19,7 @@ scaff1  1   100 scaff_1
 scaff2  25  500 scaff_2
 scaff3
 2. fasta_file
-fasta seq文件是标准的fasta序列格式。
+fasta seq文件是标准的fasta序列格式.
 [fasta wiki](https://en.wikipedia.org/wiki/FASTA_format)
 
 
@@ -28,7 +28,7 @@ fasta seq文件是标准的fasta序列格式。
 
 说明：
 list file是所要提取fastq序列的ID（@可有可无）。
-fastq 文件是标准的fastq序列格式。
+fastq 文件是标准的fastq序列格式.
 [fastq wiki](https://en.wikipedia.org/wiki/FASTQ_format)
 
 
