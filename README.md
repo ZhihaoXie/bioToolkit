@@ -10,7 +10,6 @@ some small tools for bioinformatics
 
 ## choosefasta.pl
 用法： `perl choosefasta.pl <list> <fasta_file> [> <output>]` 
-
 说明：
 
 1. list file
@@ -25,7 +24,6 @@ fasta seq文件是标准的fasta序列格式。
 
 ## choosefastq.pl
 用法： `perl choosefastq.pl <list> <fastq> [> out]` 
-
 说明：
 list file是所要提取fastq序列的ID（@可有可无）。
 fastq 文件是标准的fastq序列格式。
@@ -34,13 +32,11 @@ fastq 文件是标准的fastq序列格式。
 
 ## gbk-summary.pl
 gbk-summary.pl 用于统计GBK文件中基因个数、基因平均长度、rRNA和tRNA数量等。
-
 用法： `perl gbk-summary.pl <gbk.file>  [> out.file]`
 
 
 ## get_geneseq_fromGBK.pl
 get_geneseq_fromGBK.pl从GBK文件中提取基因的核苷酸序列和蛋白序列。
-
 用法： `perl get_geneseq_fromGBK.pl genbank_file prefix`
 
 
