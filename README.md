@@ -9,7 +9,7 @@ some small tools for bioinformatics
 在使用这些脚本工具前，请先安装Perl和bioperl模块。
 
 ## choosefasta.pl
-用法： `perl choosefasta.pl <list> <fasta_file> [> <output>]`
+用法： `perl choosefasta.pl <list> <fasta_file> [> <output>]` 
 说明：
 
 1. list file
@@ -23,7 +23,7 @@ fasta seq文件是标准的fasta序列格式。
 
 
 ## choosefastq.pl
-用法： `perl choosefastq.pl <list> <fastq> [> out]`
+用法： `perl choosefastq.pl <list> <fastq> [> out]` 
 说明：
 list file是所要提取fastq序列的ID（@可有可无）。
 fastq 文件是标准的fastq序列格式。
