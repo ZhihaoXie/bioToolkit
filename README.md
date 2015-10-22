@@ -58,3 +58,12 @@ URL 可能是这样： http://www.genome.jp/kegg-bin/show_pathway?14454122482505
 out_dir 则是图片输出结果的目录。
 
 拓展： [KEGG](http://www.genome.jp/kegg/)
+
+
+## calc_SNP_core-gene.pl
+统计多物种多序列比对后不同物种与参考物种的核心基因的SNP数目。也适用于其他多核酸序列比对后统计SNP数目。多序列比对建议使用软件muscle，比对结果是比对后的fasta格式，以".mus"为后缀。
+
+fasta seq ID 格式为"species_id|gene_id"，如："E.coli|gene1"。list file只包含species_id，且每一个species_id为一行，参考序列的species_id须在第一行。
+
+用法： `perl calc_SNP_core-gene.pl <list> <in_dir> > output`
+
