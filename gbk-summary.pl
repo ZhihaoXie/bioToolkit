@@ -19,7 +19,8 @@ my $fgbk = basename $gbk_file;
 print "Id\tgene number\tgene length(bp)\tgene avg length(bp)\tgene/genome(%)\tGC in genes\tgene density(per Kb)\trRNA number\ttRNA number\n";
 
 my ($all_gene,$all_length,$all_ave,$all_rrna,$all_trna,$all_gc,$gc);
-$all_rrna=0;$all_trna=0;
+$all_rrna=0;
+$all_trna=0;
 my $sall_length;
 my $all_density = 0;
 
