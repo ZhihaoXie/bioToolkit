@@ -39,9 +39,14 @@ while (my $seq = $seqi->next_seq) {
                 ($gene_id) = $feature->get_tag_values('locus_tag');
             } elsif ($feature->has_tag('old_locus_tag')) {
                 ($gene_id) = $feature->get_tag_values('old_locus_tag');
+            } elsif ($feature->has_tag('gene')) {
+                ($gene_id) = $feature->get_tag_values('gene');
             }
             if (! $feature->has_tag('ID')) {
                 $feature->add_tag_value("ID", $gene_id);
+            }
+            if (! $feature->has_tag('locus_tag')) {
+                $feature->add_tag_value("locus_tag", $gene_id);
             }
         }
         
