@@ -6,10 +6,22 @@
 
 Some tools for bioinformatics.
 
-在使用这些脚本工具前，请先安装Perl (>= v5.10) 和bioperl模块。
+# 安装依赖
+
+- perl (>= v5.10)
+  - bioperl
+- python3 (>= v3.6)
+  - biopython
+
+在使用这些脚本工具前，请先安装Perl、Python3。
+
+# 使用说明
 
 ## choosefasta.pl
 
+根据ID提取序列。
+
+```
 用法： `perl choosefasta.pl <list> <fasta_file> [> <output>]` 
 
 说明：
@@ -26,18 +38,23 @@ Some tools for bioinformatics.
 
 2. fasta_file
 
-fasta seq文件是标准的fasta序列格式.
+  fasta seq文件是标准的fasta序列格式.
+```
 
 [fasta wiki](https://en.wikipedia.org/wiki/FASTA_format)
 
 
 ## choosefastq.pl
 
+根据ID提取fastq序列。
+
+```
 用法： `perl choosefastq.pl <list> <fastq> [> out]` 
 
 说明：
 list file是所要提取fastq序列的ID（@字符可有可无）。
 fastq 文件是标准的fastq序列格式.
+```
 
 [fastq wiki](https://en.wikipedia.org/wiki/FASTQ_format)
 
@@ -46,14 +63,18 @@ fastq 文件是标准的fastq序列格式.
 
 gbk-summary.pl 用于统计GBK文件中基因个数、基因平均长度、rRNA和tRNA数量等。
 
-用法： `perl gbk-summary.pl <gbk.file>  [> out.file]`
+```
+用法： perl gbk-summary.pl <gbk.file>  [> out.file]
+```
 
 
 ## get_geneseq.pl
 
 get_geneseq.pl 从GBK文件中提取基因的核苷酸序列和蛋白序列。
 
-用法： `perl get_geneseq.pl genbank_file prefix`
+```
+用法： perl get_geneseq.pl genbank_file prefix
+```
 
 
 ## download_kegg_picture.pl
@@ -84,9 +105,29 @@ fasta seq ID 格式为"species_id|gene_id"，如："E.coli|gene1"。list file只
 
 convert genbank file to gff file as [Roary](http://sanger-pathogens.github.io/Roary/) inputs.
 
+```
 Usage:
-
-```
-perl genbank2gff.pl <genbank> <gff_output>
+  perl genbank2gff.pl <genbank> <gff_output>
 ```
 
+
+## assembly_stats_meta.pl
+
+统计核酸序列的长度、GC等信息
+
+```
+Usage: perl assembly_stats_meta.pl <fasta-list> [large_length_filter] > <output>
+
+Options:
+  fasta-list: 核酸序列文件的列表，每一行是序列文件的路径（绝对路径）
+  large_length_filter： 过滤长度阈值，默认为1，即不过滤
+```
+
+
+## run_multitask.py
+
+并发执行多任务脚本（shell）
+
+```
+Usage: python run_multitask.py <bash_cmd.sh> [task_number]
+```

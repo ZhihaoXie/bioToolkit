@@ -5,7 +5,7 @@
 #
 
 if (@ARGV < 2) {
-    print STDERR "perl $0 <list> <fastq> [> out]\nAuthor: xzh \t \@2014.4.22\t  \\(#^0^)/\n";
+    print STDERR "perl $0 <ID_list> <fastq> [> out]\nAuthor: xzh \t \@2014.4.22\t  \\(#^0^)/\n";
     exit;
 }
 
