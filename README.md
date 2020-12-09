@@ -44,6 +44,11 @@ Some tools for bioinformatics.
 [fasta wiki](https://en.wikipedia.org/wiki/FASTA_format)
 
 
+## choosefasta.py
+
+same for choosefasta.pl
+
+
 ## choosefastq.pl
 
 根据ID提取fastq序列。
@@ -131,3 +136,28 @@ Options:
 ```
 Usage: python run_multitask.py <bash_cmd.sh> [task_number]
 ```
+
+
+## split_fasta.py
+
+Split a multiFASTA file by number or chunks or file size
+
+```
+python script/split_fasta.py -h
+arguments:
+  -h, --help            show this help message and exit
+  -i FASTA_FILE, --input-file FASTA_FILE
+                        Input FASTA file to split, support for gzip
+                        compression
+  -n NUMBER, --num NUMBER
+                        Number of sequences of every subfile (default: None)
+  -c NUM_CHUNKS, --chunks NUM_CHUNKS
+                        Number of chunks to split (default: None)
+  -m MAX_FILE_SIZE, --max_file_size MAX_FILE_SIZE
+                        Instead of a precise number, indicate an expected file
+                        size for each chunk in bytes(k, M, G, T suffixes are
+                        accepted). (default: None)
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Output directory (default: .)
+```
+
