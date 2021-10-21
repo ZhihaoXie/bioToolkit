@@ -4,7 +4,7 @@
 
 ---
 
-Some tools for bioinformatics.
+Some scripts for bioinformatics.
 
 # 安装依赖
 
@@ -12,8 +12,9 @@ Some tools for bioinformatics.
   - bioperl
 - python3 (>= v3.6)
   - biopython
+  - loguru
 
-在使用这些脚本工具前，请先安装Perl、Python3。
+备注，在使用这些脚本之前，请先安装Perl、Python3。
 
 # 使用说明
 
@@ -46,7 +47,7 @@ Some tools for bioinformatics.
 
 ## choosefasta.py
 
-same for choosefasta.pl
+same of choosefasta.pl
 
 
 ## choosefastq.pl
@@ -129,21 +130,12 @@ Options:
 ```
 
 
-## run_multitask.py
-
-并发执行多任务脚本（shell）
-
-```
-Usage: python run_multitask.py <bash_cmd.sh> [task_number]
-```
-
-
 ## split_fasta.py
 
 Split a multiFASTA file by number or chunks or file size
 
 ```
-python script/split_fasta.py -h
+python split_fasta.py -h
 arguments:
   -h, --help            show this help message and exit
   -i FASTA_FILE, --input-file FASTA_FILE
@@ -159,5 +151,39 @@ arguments:
                         accepted). (default: None)
   -o OUTPUT_DIR, --output-dir OUTPUT_DIR
                         Output directory (default: .)
+```
+
+
+## name2taxid.py
+
+Query taxonomy id by scientific name from names.dmp
+
+```
+usage: name2taxid.py [-h] [-n NAMEDMP] [-q QUERY] [-qf QUERYFILE]
+
+scientific name to taxonmy id
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -n NAMEDMP     names.dmp of taxonomy as query database
+  -q QUERY       query sci name
+  -qf QUERYFILE  query sci name file, one line as a name, -q and -qf conflict
+```
+
+
+## run_multitask.py
+
+Execute shell scripts in parallel
+
+```
+Usage: python run_multitask.py <bash_cmd.sh> [task_number]
+```
+
+## multiprocessing_run_cmd.py
+
+Execute shell scripts in parallel, each line is a command.
+
+```
+Usage: python multiprocessing_run_cmd.py cmd.sh [threads_num]
 ```
 
