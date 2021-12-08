@@ -1,6 +1,6 @@
 ﻿# bio_scripts instruction
 
-标签： bioinformatics
+tag： bioinformatics
 
 ---
 
@@ -11,58 +11,45 @@ Some scripts for bioinformatics.
 - perl (>= v5.10)
   - bioperl
 - python3 (>= v3.6)
-  - biopython
+  - biopython >=1.78
   - loguru
+  - pyfastx >=0.8
+  - bcbio-gff >=0.6.6
 
 备注，在使用这些脚本之前，请先安装Perl、Python3。
 
 # 使用说明
 
-## choosefasta.pl
+## biotoolkit.py
 
-根据ID提取序列。
-
-```
-用法： `perl choosefasta.pl <list> <fasta_file> [> <output>]` 
-
-说明：
-
-1. list file
-
-  list file是以tab符分割的csv文件或文本文件；第一列是源序列的ID，第二列是起始位置，第三列是终止位置，第四列是取出的子序列的ID（自定义）。如果只有第一列则是取出整个序列。如：
-
-  scaff1  1   100 scaff_1
-
-  scaff2  25  500 scaff_2
-
-  scaff3
-
-2. fasta_file
-
-  fasta seq文件是标准的fasta序列格式.
-```
-
-[fasta wiki](https://en.wikipedia.org/wiki/FASTA_format)
-
-
-## choosefasta.py
-
-same of choosefasta.pl
-
-
-## choosefastq.pl
-
-根据ID提取fastq序列。
+查看说明： `python biotoolkit -h`
 
 ```
-用法： `perl choosefastq.pl <list> <fastq> [> out]` 
+usage: biotoolkit [-h] [-v]
+                  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,gbkGetGeneRegionByName,geneRegion,chooseseq}
+                  ...
 
-说明：
-list file是所要提取fastq序列的ID（@字符可有可无）。
-fastq 文件是标准的fastq序列格式.
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+
+subcommands:
+  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,gbkGetGeneRegionByName,geneRegion,chooseseq}
+                        Desired action to perform
+    gbk2fa              genbank convert to fasta format. gzip format is not
+                        supported.
+    gbk2gff             genbank convert to gff3
+    fq2fa               fastq convert to fasta format. gzip format is
+                        supported.
+    fa2bed              fasta file convert to bed file
+    lengthStats         length stats of fasta file. output to stdout
+    stats               stats of fasta file. output to stdout
+    cutHead10Fastq      trim 10 bp from head ends for fastq
+    getGeneFromGFF3     get gene by CDS from gff3 and genome
+    gbkGetGeneRegionByName (geneRegion)
+                        get sequence region between two genes
+    chooseseq           choose sequences by sequence's id
 ```
-
-[fastq wiki](https://en.wikipedia.org/wiki/FASTQ_format)
 
 
 ## gbk-summary.pl
@@ -105,29 +92,6 @@ out_dir 则是图片输出结果的目录。
 fasta seq ID 格式为"species_id|gene_id"，如："E.coli|gene1"。list file只包含species_id，且每一个species_id为一行，参考序列的species_id须在第一行。
 
 用法： `perl calc_SNP_Coregene.pl <list> <in_dir> > output`
-
-
-## genbank2gff.pl
-
-convert genbank file to gff file as [Roary](http://sanger-pathogens.github.io/Roary/) inputs.
-
-```
-Usage:
-  perl genbank2gff.pl <genbank> <gff_output>
-```
-
-
-## assembly_stats_meta.pl
-
-统计核酸序列的长度、GC等信息
-
-```
-Usage: perl assembly_stats_meta.pl <fasta-list> [large_length_filter] > <output>
-
-Options:
-  fasta-list: 核酸序列文件的列表，每一行是序列文件的路径（绝对路径）
-  large_length_filter： 过滤长度阈值，默认为1，即不过滤
-```
 
 
 ## split_fasta.py
