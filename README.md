@@ -65,15 +65,6 @@ gbk-summary.pl 用于统计GBK文件中基因个数、基因平均长度、rRNA�
 ```
 
 
-## get_geneseq.pl
-
-get_geneseq.pl 从GBK文件中提取基因的核苷酸序列和蛋白序列。
-
-```
-用法： perl get_geneseq.pl genbank_file prefix
-```
-
-
 ## download_kegg_picture.pl
 
 当你用 ko number 做完 pathway mapping，你可能想要下载 pathway 图，那么这个脚本将会帮助你。
