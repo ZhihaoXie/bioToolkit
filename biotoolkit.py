@@ -14,7 +14,7 @@ import argparse
 import gzip
 import pyfastx
 from collections import OrderedDict
-from Bio import SeqIO    # required biopython >=1.78
+from Bio import SeqIO  # required biopython >=1.78
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
@@ -434,6 +434,57 @@ def search(args):
                 sys.stdout.write(f"{name}\t{pattern_match}\t" + ",".join(temp_list) + "\n")
 
 
+def getGeneFromGBK(args):
+    '''extract protein or nucleotide seq of gene from genbank file
+    '''
+    gbk, outfile, molecular_type = args.gbk, args.out, args.molecular
+    with open(outfile, 'w') as fout:
+        for gb_record in SeqIO.parse(gbk, 'genbank'):
+            gb_id = gb_record.id
+            for ele in gb_record.features:
+                if ele.type == "CDS":
+                    cds_seq = ele.extract(gb_record.seq)  # extract func return a Seq object
+                    locus_tag = ele.qualifiers['locus_tag'][0]
+                    gene_symbol = ele.qualifiers.get("gene", [])
+                    if len(gene_symbol) > 0:
+                        gene_symbol = gene_symbol[0]
+                    else:
+                        gene_symbol = ""
+                    product = ele.qualifiers.get("product", [])
+                    if len(product) > 0:
+                        product = product[0]
+                    else:
+                        product = ""
+                    cds_description = f"{gene_symbol} {product}".strip()
+                    if molecular_type in ['DNA', 'dna']:
+                        cds_id = f"{gb_id}_cds_{locus_tag}"
+                        SeqIO.write(SeqRecord(cds_seq, id=cds_id, description=cds_description), fout, 'fasta')
+                    elif molecular_type in ['protein', 'pro', 'p']:
+                        protein_id = ele.qualifiers.get("protein_id", [])
+                        if len(protein_id) > 0:
+                            protein_id = protein_id[0]
+                        else:
+                            protein_id = ""
+                        cds_id = f"{gb_id}_cds_{locus_tag}_{protein_id}".strip("_")
+                        # 优先提取"translation"字符串
+                        cds_protein = ele.qualifiers.get("translation", [])
+                        if len(cds_protein) > 0:
+                            cds_protein = cds_protein[0]
+                        else:
+                            transl_table = ele.qualifiers.get("transl_table", [])
+                            if len(transl_table) == 0:
+                                transl_table = 1  # default translate table is 1
+                            else:
+                                transl_table = int(transl_table[0])
+                            if len(cds_seq) % 3 != 0:
+                                sys.stderr.write(
+                                    f"Warning: {locus_tag}'s sequence length {len(cds_seq)} is not a multiple of three, maybe pseudogene!\n")
+                                continue
+                            cds_protein = ele.extract(gb_record.seq).translate(table=transl_table, to_stop=True)
+                            cds_protein = str(cds_protein)
+                        SeqIO.write(SeqRecord(Seq(cds_protein), id=cds_id, description=cds_description), fout, 'fasta')
+
+
 def main():
     parser = argparse.ArgumentParser(prog='biotoolkit')
     parser.add_argument('-v', '--version', action='version', version=__doc__)
@@ -479,6 +530,13 @@ def main():
     parser_getgenegff3.add_argument('-c', dest='cds', required=True, help='gene fasta as output')
     parser_getgenegff3.set_defaults(func=getGeneFromGFF3)
 
+    parser_getGeneFromGBK = subparsers.add_parser('getGeneFromGBK',
+                                                  help="extract protein or nucleotide seq of gene from genbank file. gzip format is not supported.")
+    parser_getGeneFromGBK.add_argument('-g', dest='gbk', required=True, help="input of genbank file")
+    parser_getGeneFromGBK.add_argument('-o', dest="out", required=True, help="ouput of gene")
+    parser_getGeneFromGBK.add_argument('-m', dest="molecular", default='dna', help="molecular type, dna or protein, default is %(default)s")
+    parser_getGeneFromGBK.set_defaults(func=getGeneFromGBK)
+
     parser_gbkGetGeneRegionByName = subparsers.add_parser('gbkGetGeneRegionByName',
                                                           aliases=['geneRegion'],
                                                           help="get sequence region between two genes")
@@ -501,7 +559,7 @@ def main():
     parser_search.add_argument('-s', dest="seq", required=True, help="input of fasta format")
     parser_search.add_argument('-p', dest='pattern', required=True, help="pattern for search")
     parser_search.set_defaults(func=search)
-    
+
     # print help
     if len(sys.argv) == 1:
         parser.print_help()
