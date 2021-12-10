@@ -12,9 +12,9 @@ Some scripts for bioinformatics.
   - bioperl
 - python3 (>= v3.6)
   - biopython >=1.78
-  - loguru
   - pyfastx >=0.8
   - bcbio-gff >=0.6.6
+  - loguru
 
 备注，在使用这些脚本之前，请先安装Perl、Python3。
 
@@ -49,6 +49,8 @@ subcommands:
     gbkGetGeneRegionByName (geneRegion)
                         get sequence region between two genes
     chooseseq           choose sequences by sequence's id
+    search              search the location of sub-seq in the genome. print to
+                        stdout
 ```
 
 

@@ -406,6 +406,34 @@ def chooseseq(args):
             sys.exit()
 
 
+def search(args):
+    '''search the location of sub-seq in the genome. print to stdout
+    '''
+    seq_file, pattern_match = args.seq, args.pattern
+    pattern_match = pattern_match.upper()
+    pattern_matchNew = ""
+    for name, seq in pyfastx.Fasta(seq_file, build_index=False):
+        temp_list = [m for m in re.finditer(pattern_match, str(seq).upper())]
+        if len(temp_list) == 0:
+            temp_seq = Seq(pattern_match)
+            temp_seq = temp_seq.reverse_complement()  # reverse pattern
+            pattern_matchNew = str(temp_seq)
+            temp_list = [m for m in re.finditer(pattern_matchNew, str(seq).upper())]
+        if len(temp_list) == 0:
+            sys.stdout.write(f"{name}\t{pattern_match}\tNot-found!\n")
+            continue
+        if len(pattern_match) == 1:
+            temp_list = [str(m.start() + 1) for m in temp_list]
+            sys.stdout.write(f"{name}\t{pattern_match}\t" + ",".join(temp_list) + "\n")
+        else:
+            temp_list = [f"{m.start()+1}-{m.end()}" for m in temp_list]
+            if pattern_matchNew:
+                # 模式被反向互补了
+                sys.stdout.write(f"{name}\t{pattern_match}(rc:{pattern_matchNew})\t" + ",".join(temp_list) + "\n")
+            else:
+                sys.stdout.write(f"{name}\t{pattern_match}\t" + ",".join(temp_list) + "\n")
+
+
 def main():
     parser = argparse.ArgumentParser(prog='biotoolkit')
     parser.add_argument('-v', '--version', action='version', version=__doc__)
@@ -460,7 +488,6 @@ def main():
     parser_gbkGetGeneRegionByName.set_defaults(func=gbkGetGeneRegionByName)
 
     parser_chooseseq = subparsers.add_parser('chooseseq', help="choose sequences by sequence's id")
-    # ids, args.seq, args.seq_type
     parser_chooseseq.add_argument('-i',
                                   dest="ids",
                                   required=True,
@@ -470,6 +497,11 @@ def main():
     parser_chooseseq.add_argument('-f', dest="seq_type", default='fasta', help="seq format, support fasta|fastq, default is fasta")
     parser_chooseseq.set_defaults(func=chooseseq)
 
+    parser_search = subparsers.add_parser('search', help="search the location of sub-seq in the genome. print to stdout")
+    parser_search.add_argument('-s', dest="seq", required=True, help="input of fasta format")
+    parser_search.add_argument('-p', dest='pattern', required=True, help="pattern for search")
+    parser_search.set_defaults(func=search)
+    
     # print help
     if len(sys.argv) == 1:
         parser.print_help()
