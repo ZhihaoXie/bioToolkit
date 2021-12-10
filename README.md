@@ -26,7 +26,7 @@ Some scripts for bioinformatics.
 
 ```
 usage: biotoolkit [-h] [-v]
-                  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,gbkGetGeneRegionByName,geneRegion,chooseseq}
+                  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search}
                   ...
 
 optional arguments:
@@ -34,7 +34,7 @@ optional arguments:
   -v, --version         show program's version number and exit
 
 subcommands:
-  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,gbkGetGeneRegionByName,geneRegion,chooseseq}
+  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search}
                         Desired action to perform
     gbk2fa              genbank convert to fasta format. gzip format is not
                         supported.
@@ -46,6 +46,8 @@ subcommands:
     stats               stats of fasta file. output to stdout
     cutHead10Fastq      trim 10 bp from head ends for fastq
     getGeneFromGFF3     get gene by CDS from gff3 and genome
+    getGeneFromGBK      extract protein or nucleotide seq of gene from genbank
+                        file. gzip format is not supported.
     gbkGetGeneRegionByName (geneRegion)
                         get sequence region between two genes
     chooseseq           choose sequences by sequence's id
