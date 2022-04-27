@@ -26,7 +26,7 @@ Some scripts for bioinformatics.
 
 ```
 usage: biotoolkit [-h] [-v]
-                  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search}
+                  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search,geneStats}
                   ...
 
 optional arguments:
@@ -34,7 +34,7 @@ optional arguments:
   -v, --version         show program's version number and exit
 
 subcommands:
-  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search}
+  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search,geneStats}     
                         Desired action to perform
     gbk2fa              genbank convert to fasta format. gzip format is not
                         supported.
@@ -53,17 +53,8 @@ subcommands:
     chooseseq           choose sequences by sequence's id
     search              search the location of sub-seq in the genome. print to
                         stdout
+    geneStats           gene stats of genbank
 ```
-
-
-## gbk-summary.pl
-
-gbk-summary.pl 用于统计GBK文件中基因个数、基因平均长度、rRNA和tRNA数量等。
-
-```
-用法： perl gbk-summary.pl <gbk.file>  [> out.file]
-```
-
 
 ## download_kegg_picture.pl
 
@@ -73,12 +64,11 @@ gbk-summary.pl 用于统计GBK文件中基因个数、基因平均长度、rRNA�
 
 mapid_file 是包含 ko number 的文件，如 ko00710
 
-URL 类似这样： http://www.genome.jp/kegg-bin/show_pathway?144541224825059
+URL 类似这样： <http://www.genome.jp/kegg-bin/show_pathway?144541224825059>
 
 out_dir 则是图片输出结果的目录。
 
 拓展： [KEGG](http://www.genome.jp/kegg/)
-
 
 ## calc_SNP_Coregene.pl
 
@@ -87,7 +77,6 @@ out_dir 则是图片输出结果的目录。
 fasta seq ID 格式为"species_id|gene_id"，如："E.coli|gene1"。list file只包含species_id，且每一个species_id为一行，参考序列的species_id须在第一行。
 
 用法： `perl calc_SNP_Coregene.pl <list> <in_dir> > output`
-
 
 ## split_fasta.py
 
@@ -112,7 +101,6 @@ arguments:
                         Output directory (default: .)
 ```
 
-
 ## name2taxid.py
 
 Query taxonomy id by scientific name from names.dmp
@@ -129,7 +117,6 @@ optional arguments:
   -qf QUERYFILE  query sci name file, one line as a name, -q and -qf conflict
 ```
 
-
 ## run_multitask.py
 
 Execute shell scripts in parallel
@@ -145,4 +132,3 @@ Execute shell scripts in parallel, each line is a command.
 ```
 Usage: python multiprocessing_run_cmd.py cmd.sh [threads_num]
 ```
-

@@ -167,7 +167,9 @@ def stats(args):
                 break
 
         print("#file\tnum_seqs\tsum_len\tmin_len\tavg_len\tmax_len\tgc\tgap_num\tgap_len\tN50_num\tN50")
-        print(f"{os.path.basename(fa)}\t{num_seqs}\t{sum_len}\t{min_len}\t{avg_len}\t{max_len}\t{gc_ratio}\t{gap_num}\t{gap_len}\t{N50_num}\t{N50}")
+        print(
+            f"{os.path.basename(fa)}\t{num_seqs}\t{sum_len}\t{min_len}\t{avg_len}\t{max_len}\t{gc_ratio}\t{gap_num}\t{gap_len}\t{N50_num}\t{N50}"
+        )
     finally:
         fhandle.close()
 
@@ -227,7 +229,8 @@ def getGeneFromGFF3(args):
                 cds_id = cds_id.strip().strip(':')
                 cds_desc = " ".join(tmp_list)  # as cds description
                 # 要注意，存在cds名称一样但基因位置不一的CDS，因此要保存所有重复的CDS
-                gene_dict.setdefault(seq_id, OrderedDict()).setdefault(cds_id, []).append((start_site, end_site, strand, cds_desc))
+                gene_dict.setdefault(seq_id, OrderedDict()).setdefault(cds_id, []).append(
+                    (start_site, end_site, strand, cds_desc))
 
     with open(cds_fna, 'w') as fout:
         for seq_record in SeqIO.parse(genomeFasta, "fasta"):
@@ -340,7 +343,8 @@ def chooseseq(args):
                 elif len(cols) == 4:
                     pos_hash.setdefault(cols[0], []).append(cols[1:])
                 else:
-                    sys.stderr.write(f"Warning: {line} was non-standard line format, must be: 'id start end new_id' or 'id', tab-separated.")
+                    sys.stderr.write(
+                        f"Warning: {line} was non-standard line format, must be: 'id start end new_id' or 'id', tab-separated.")
                     continue
 
     total_s_number = len(pos_hash.keys())
@@ -478,11 +482,86 @@ def getGeneFromGBK(args):
                                 transl_table = int(transl_table[0])
                             if len(cds_seq) % 3 != 0:
                                 sys.stderr.write(
-                                    f"Warning: {locus_tag}'s sequence length {len(cds_seq)} is not a multiple of three, maybe pseudogene!\n")
+                                    f"Warning: {locus_tag}'s sequence length {len(cds_seq)} is not a multiple of three, maybe pseudogene!\n"
+                                )
                                 continue
                             cds_protein = ele.extract(gb_record.seq).translate(table=transl_table, to_stop=True)
                             cds_protein = str(cds_protein)
                         SeqIO.write(SeqRecord(Seq(cds_protein), id=cds_id, description=cds_description), fout, 'fasta')
+
+
+def geneStats(args):
+    """gene stats of genbank
+    """
+    from Bio.SeqUtils import GC, GC_skew
+
+    def gene_stats_gbk(gbk_file, stats_out):
+        genome_name = os.path.basename(gbk_file)
+        genome_len, gene_len, gene_num, cds_len, cds_num, tRNA_num, rRNA_num = 0, 0, 0, 0, 0, 0, 0
+        gene_ratio, gene_density = 0, 0
+        genome_gc, genome_gcskew = 0, 0
+        rec_num = 0
+        for rec in SeqIO.parse(gbk_file, "genbank"):  # every fragment
+            rec_num += 1
+            genome_len += len(rec)
+            genome_gc += GC(rec.seq)
+            genome_gcskew += GC_skew(rec.seq, window=len(rec))[0]
+            for seq_feature in rec.features:
+                if seq_feature.type == "gene":
+                    gene_num += 1
+                    gene_seq = seq_feature.extract(rec.seq)
+                    gene_len += len(gene_seq)
+                if seq_feature.type == "CDS":
+                    cds_num += 1
+                    cds_seq = seq_feature.extract(rec.seq)
+                    cds_len += len(cds_seq)
+                if seq_feature.type == "tRNA":
+                    tRNA_num += 1
+                if seq_feature.type == "rRNA":
+                    rRNA_num += 1
+
+        if gene_num == 0:
+            gene_num = cds_num + tRNA_num + rRNA_num
+            gene_len = cds_len
+        gene_ratio = round(gene_len / genome_len * 100, 2)
+        gene_density = round(gene_num / genome_len * 1000, 2)  # 每1Kb的基因密度
+        genome_gc = round(genome_gc / rec_num, 2)
+        genome_gcskew = round(genome_gcskew / rec_num, 2)
+        # output header
+        if os.path.isfile(stats_out) and os.path.getsize(stats_out) >= 107:
+            with open(stats_out, 'a', encoding='utf-8') as fout:  # 追加
+                print(
+                    f"{genome_name}\t{genome_len}\t{gene_len}\t{gene_num}\t{cds_len}\t{cds_num}\t{tRNA_num}\t{rRNA_num}\t{gene_ratio}\t{gene_density}\t{genome_gc}\t{genome_gcskew}",
+                    file=fout)
+        else:
+            with open(stats_out, 'w', encoding='utf-8') as fout:
+                print(
+                    "#Genome\tGenome_len\tGene_len\tGene_num\tCDS_len\tCDS_num\ttRNA_num\trRNA_num\tGene_ratio\tGene_density\tGC\tGC_skew",
+                    file=fout)
+                print(
+                    f"{genome_name}\t{genome_len}\t{gene_len}\t{gene_num}\t{cds_len}\t{cds_num}\t{tRNA_num}\t{rRNA_num}\t{gene_ratio}\t{gene_density}\t{genome_gc}\t{genome_gcskew}",
+                    file=fout)
+
+    gbk, gbk_list = "", ""
+    if args.genbank:
+        gbk = os.path.abspath(args.genbank)
+    if args.list:
+        gbk_list = os.path.abspath(args.list)
+    output_file = os.path.abspath(args.output)
+    if os.path.isfile(output_file) and os.path.getsize(output_file) > 0:
+        os.remove(output_file)
+    if os.path.isfile(gbk) and os.path.getsize(gbk) > 0:
+        gene_stats_gbk(gbk, output_file)
+    elif os.path.isfile(gbk_list) and os.path.getsize(gbk_list) > 0:
+        with open(gbk_list, 'r') as f:
+            for line in f:
+                if re.search(r'^\s*$|^#', line):
+                    continue
+                temp_gbk = line.strip()
+                gene_stats_gbk(temp_gbk, output_file)
+    else:
+        sys.stderr.write("Please provide a genbank file or a list of genbank.\n")
+        sys.exit()
 
 
 def main():
@@ -530,11 +609,14 @@ def main():
     parser_getgenegff3.add_argument('-c', dest='cds', required=True, help='gene fasta as output')
     parser_getgenegff3.set_defaults(func=getGeneFromGFF3)
 
-    parser_getGeneFromGBK = subparsers.add_parser('getGeneFromGBK',
-                                                  help="extract protein or nucleotide seq of gene from genbank file. gzip format is not supported.")
+    parser_getGeneFromGBK = subparsers.add_parser(
+        'getGeneFromGBK', help="extract protein or nucleotide seq of gene from genbank file. gzip format is not supported.")
     parser_getGeneFromGBK.add_argument('-g', dest='gbk', required=True, help="input of genbank file")
     parser_getGeneFromGBK.add_argument('-o', dest="out", required=True, help="ouput of gene")
-    parser_getGeneFromGBK.add_argument('-m', dest="molecular", default='dna', help="molecular type, dna or protein, default is %(default)s")
+    parser_getGeneFromGBK.add_argument('-m',
+                                       dest="molecular",
+                                       default='dna',
+                                       help="molecular type, dna or protein, default is %(default)s")
     parser_getGeneFromGBK.set_defaults(func=getGeneFromGBK)
 
     parser_gbkGetGeneRegionByName = subparsers.add_parser('gbkGetGeneRegionByName',
@@ -550,15 +632,27 @@ def main():
                                   dest="ids",
                                   required=True,
                                   help="select id file, one-line must be: 'id start end new_id' or 'id', tab-separated")
-    parser_chooseseq.add_argument('-s', dest='seq', required=True, help="input of fasta or fastq of DNA. only support SE reads for fastq")
+    parser_chooseseq.add_argument('-s',
+                                  dest='seq',
+                                  required=True,
+                                  help="input of fasta or fastq of DNA. only support SE reads for fastq")
     parser_chooseseq.add_argument('-o', dest="out", required=True, help="ouput, gzip format is not supported")
-    parser_chooseseq.add_argument('-f', dest="seq_type", default='fasta', help="seq format, support fasta|fastq, default is fasta")
+    parser_chooseseq.add_argument('-f',
+                                  dest="seq_type",
+                                  default='fasta',
+                                  help="seq format, support fasta|fastq, default is fasta")
     parser_chooseseq.set_defaults(func=chooseseq)
 
     parser_search = subparsers.add_parser('search', help="search the location of sub-seq in the genome. print to stdout")
     parser_search.add_argument('-s', dest="seq", required=True, help="input of fasta format")
     parser_search.add_argument('-p', dest='pattern', required=True, help="pattern for search")
     parser_search.set_defaults(func=search)
+
+    parser_geneStats = subparsers.add_parser('geneStats', help="gene stats of genbank")
+    parser_geneStats.add_argument('-g', dest='genbank', help="genbank file for stats")
+    parser_geneStats.add_argument('-l', dest='list', help="a list of genbank files, per line a genbank file")
+    parser_geneStats.add_argument('-o', dest="output", help="output of gene stats")
+    parser_geneStats.set_defaults(func=geneStats)
 
     # print help
     if len(sys.argv) == 1:
