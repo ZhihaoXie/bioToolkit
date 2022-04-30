@@ -44,7 +44,7 @@ def fq2fa(args):
             fq_handle = gzip.open(fq, 'rt')
             fa_handle = gzip.open(fa, 'wt')
         except Exception as e:
-            sys.stderr.write("Warning: %s\n" (str(e)))
+            sys.stderr.write("Warning: %s\n" % (str(e)))
         else:
             for rec in SeqIO.parse(fq_handle, 'fastq'):
                 SeqIO.write(rec, fa_handle, 'fasta')
@@ -56,7 +56,7 @@ def fq2fa(args):
             fq_handle = gzip.open(fq, 'rt')
             fa_handle = open(fa, 'w')
         except Exception as e:
-            sys.stderr.write("Warning: %s\n" (str(e)))
+            sys.stderr.write("Warning: %s\n" % (str(e)))
         else:
             for rec in SeqIO.parse(fq_handle, 'fastq'):
                 SeqIO.write(rec, fa_handle, 'fasta')
@@ -68,7 +68,7 @@ def fq2fa(args):
             fq_handle = open(fq, 'r')
             fa_handle = gzip.open(fa, 'wt')
         except Exception as e:
-            sys.stderr.write("Warning: %s\n" (str(e)))
+            sys.stderr.write("Warning: %s\n" % (str(e)))
         else:
             for rec in SeqIO.parse(fq_handle, 'fastq'):
                 SeqIO.write(rec, fa_handle, 'fasta')
@@ -498,6 +498,7 @@ def geneStats(args):
     def gene_stats_gbk(gbk_file, stats_out):
         genome_name = os.path.basename(gbk_file)
         genome_len, gene_len, gene_num, cds_len, cds_num, tRNA_num, rRNA_num = 0, 0, 0, 0, 0, 0, 0
+        tRNA_len, rRNA_len = 0, 0
         gene_ratio, gene_density = 0, 0
         genome_gc, genome_gcskew = 0, 0
         rec_num = 0
@@ -517,12 +518,16 @@ def geneStats(args):
                     cds_len += len(cds_seq)
                 if seq_feature.type == "tRNA":
                     tRNA_num += 1
+                    trna_seq = seq_feature.extract(rec.seq)
+                    tRNA_len += len(trna_seq)
                 if seq_feature.type == "rRNA":
                     rRNA_num += 1
+                    rrna_seq = seq_feature.extract(rec.seq)
+                    rRNA_len += len(rrna_seq)
 
         if gene_num == 0:
             gene_num = cds_num + tRNA_num + rRNA_num
-            gene_len = cds_len
+            gene_len = cds_len + tRNA_len + rRNA_len
         gene_ratio = round(gene_len / genome_len * 100, 2)
         gene_density = round(gene_num / genome_len * 1000, 2)  # 每1Kb的基因密度
         genome_gc = round(genome_gc / rec_num, 2)
@@ -536,7 +541,7 @@ def geneStats(args):
         else:
             with open(stats_out, 'w', encoding='utf-8') as fout:
                 print(
-                    "#Genome\tGenome_len\tGene_len\tGene_num\tCDS_len\tCDS_num\ttRNA_num\trRNA_num\tGene_ratio\tGene_density\tGC\tGC_skew",
+                    "#Genome\tGenome_len\tGene_len\tGene_num\tCDS_len\tCDS_num\ttRNA_num\trRNA_num\tGene_ratio(%)\tGene_density(num/1Kb)\tGC(%)\tGC_skew(%)",
                     file=fout)
                 print(
                     f"{genome_name}\t{genome_len}\t{gene_len}\t{gene_num}\t{cds_len}\t{cds_num}\t{tRNA_num}\t{rRNA_num}\t{gene_ratio}\t{gene_density}\t{genome_gc}\t{genome_gcskew}",
