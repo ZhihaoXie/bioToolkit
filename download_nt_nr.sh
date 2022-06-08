@@ -13,6 +13,7 @@ aria2c=`which aria2c`
 if [ ! -n $aria2c ];then
     echo "aria2c not in \$PATH. install it or check"
     exit 1
+fi
 
 out_dir=`readlink -f $1`
 library_name="$2"

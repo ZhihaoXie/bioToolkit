@@ -147,16 +147,16 @@ def stats(args):
                 min_len = rec_len
             if max_len < rec_len:
                 max_len = rec_len
-            g_num = rec.seq.count('G')
-            c_num = rec.seq.count('C')
-            s_num = rec.seq.count('S')
+            g_num = rec.seq.upper().count('G')
+            c_num = rec.seq.upper().count('C')
+            s_num = rec.seq.upper().count('S')
             total_gc += g_num + c_num + s_num
             n_list = re.findall('N+', str(rec.seq), re.I)
             gap_num += len(n_list)
             gap_len += sum(list(map(lambda x: len(x), n_list)))
 
         avg_len = round(sum_len / num_seqs, 2)
-        gc_ratio = round(total_gc / sum_len, 2)
+        gc_percent = round(total_gc / sum_len * 100, 2)
         len_list.sort(reverse=True)
         temp_n50 = 0
         for i, v in enumerate(len_list):
@@ -168,7 +168,7 @@ def stats(args):
 
         print("#file\tnum_seqs\tsum_len\tmin_len\tavg_len\tmax_len\tgc\tgap_num\tgap_len\tN50_num\tN50")
         print(
-            f"{os.path.basename(fa)}\t{num_seqs}\t{sum_len}\t{min_len}\t{avg_len}\t{max_len}\t{gc_ratio}\t{gap_num}\t{gap_len}\t{N50_num}\t{N50}"
+            f"{os.path.basename(fa)}\t{num_seqs}\t{sum_len}\t{min_len}\t{avg_len}\t{max_len}\t{gc_percent}\t{gap_num}\t{gap_len}\t{N50_num}\t{N50}"
         )
     finally:
         fhandle.close()
@@ -598,7 +598,8 @@ def main():
     parser_lengthStats.add_argument('-f', dest='fasta', required=True, help='input of fasta format')
     parser_lengthStats.set_defaults(func=lengthStats)
 
-    parser_stats = subparsers.add_parser('stats', help="stats of fasta file. output to stdout")
+    parser_stats = subparsers.add_parser(
+        'stats', help="stats of fasta file, include total length, average length, gc, N50. output to stdout")
     parser_stats.add_argument('-f', dest='fasta', required=True, help="input of fasta format")
     parser_stats.set_defaults(func=stats)
 
