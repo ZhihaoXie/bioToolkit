@@ -5,6 +5,7 @@
 @Version:     V0.0.0.1
 @Date:        2021/12/02 14:09:51
 @Description: biotoolkit
+@CopyRight: Copyright (c)Zhihao Xie, All rights reserved.
 '''
 
 import sys
@@ -344,7 +345,8 @@ def chooseseq(args):
                     pos_hash.setdefault(cols[0], []).append(cols[1:])
                 else:
                     sys.stderr.write(
-                        f"Warning: {line} was non-standard line format, must be: 'id start end new_id' or 'id', tab-separated.")
+                        f"Warning: {line} was non-standard line format, must be: 'id start end new_id' or 'id', tab-separated."
+                    )
                     continue
 
     total_s_number = len(pos_hash.keys())
@@ -569,12 +571,32 @@ def geneStats(args):
         sys.exit()
 
 
+def translate(args):
+    """translation of gene sequence into protein sequence
+    """
+    cds, proteinseq = os.path.abspath(args.cds), os.path.abspath(args.protein)
+    code_table = args.coding_table
+    with open(proteinseq, 'w') as fout:
+        for seq_record in SeqIO.parse(cds, "fasta"):
+            seq_id = seq_record.id
+            seq_desc = seq_record.description.replace(seq_record.id, "")
+            seq_seq = seq_record.seq
+            protein_seq = seq_seq.translate(table=code_table)
+            pro_length = len(protein_seq) - 1
+            if re.search(r"\d+_?nt", seq_desc):
+                seq_desc = re.sub(r"\d+_?nt", str(pro_length) + "_aa", seq_desc)
+            protein_record = SeqRecord(Seq(str(protein_seq).rstrip("*")), id=seq_id, description=seq_desc)
+            SeqIO.write(protein_record, fout, "fasta")
+
+
+# --------------- main --------------- #
 def main():
     parser = argparse.ArgumentParser(prog='biotoolkit')
     parser.add_argument('-v', '--version', action='version', version=__doc__)
     subparsers = parser.add_subparsers(title='subcommands', help='Desired action to perform')
     # 添加子命令
-    parser_gbk2fa = subparsers.add_parser('gbk2fa', help="genbank convert to fasta format. gzip format is not supported.")
+    parser_gbk2fa = subparsers.add_parser('gbk2fa',
+                                          help="genbank convert to fasta format. gzip format is not supported.")
     parser_gbk2fa.add_argument('-g', dest='gbk', required=True, help="input of genbank format")
     parser_gbk2fa.add_argument('-f', dest='fasta', required=True, help="output of fasta format")
     parser_gbk2fa.set_defaults(func=gbk2fa)
@@ -616,7 +638,8 @@ def main():
     parser_getgenegff3.set_defaults(func=getGeneFromGFF3)
 
     parser_getGeneFromGBK = subparsers.add_parser(
-        'getGeneFromGBK', help="extract protein or nucleotide seq of gene from genbank file. gzip format is not supported.")
+        'getGeneFromGBK',
+        help="extract protein or nucleotide seq of gene from genbank file. gzip format is not supported.")
     parser_getGeneFromGBK.add_argument('-g', dest='gbk', required=True, help="input of genbank file")
     parser_getGeneFromGBK.add_argument('-o', dest="out", required=True, help="ouput of gene")
     parser_getGeneFromGBK.add_argument('-m',
@@ -629,8 +652,14 @@ def main():
                                                           aliases=['geneRegion'],
                                                           help="get sequence region between two genes")
     parser_gbkGetGeneRegionByName.add_argument('-g', dest='gbk', required=True, help="input of genbank")
-    parser_gbkGetGeneRegionByName.add_argument('-n', dest='gene_names', required=True, help="two genes name, separated by commas")
-    parser_gbkGetGeneRegionByName.add_argument('-o', dest='region', required=True, help="output for selected gene region")
+    parser_gbkGetGeneRegionByName.add_argument('-n',
+                                               dest='gene_names',
+                                               required=True,
+                                               help="two genes name, separated by commas")
+    parser_gbkGetGeneRegionByName.add_argument('-o',
+                                               dest='region',
+                                               required=True,
+                                               help="output for selected gene region")
     parser_gbkGetGeneRegionByName.set_defaults(func=gbkGetGeneRegionByName)
 
     parser_chooseseq = subparsers.add_parser('chooseseq', help="choose sequences by sequence's id")
@@ -649,7 +678,8 @@ def main():
                                   help="seq format, support fasta|fastq, default is fasta")
     parser_chooseseq.set_defaults(func=chooseseq)
 
-    parser_search = subparsers.add_parser('search', help="search the location of sub-seq in the genome. print to stdout")
+    parser_search = subparsers.add_parser('search',
+                                          help="search the location of sub-seq in the genome. print to stdout")
     parser_search.add_argument('-s', dest="seq", required=True, help="input of fasta format")
     parser_search.add_argument('-p', dest='pattern', required=True, help="pattern for search")
     parser_search.set_defaults(func=search)
@@ -659,6 +689,13 @@ def main():
     parser_geneStats.add_argument('-l', dest='list', help="a list of genbank files, per line a genbank file")
     parser_geneStats.add_argument('-o', dest="output", help="output of gene stats")
     parser_geneStats.set_defaults(func=geneStats)
+
+    # translate
+    parser_translate = subparsers.add_parser('translate', help="translate cds to protein")
+    parser_translate.add_argument('-i', dest="cds", help="cds sequences, fasta format")
+    parser_translate.add_argument('-o', dest="protein", help="protein sequences as output, fasta format")
+    parser_translate.add_argument('-c', dest="coding_table", default=1, type=int, help="codon table, default is 1")
+    parser_translate.set_defaults(func=translate)
 
     # print help
     if len(sys.argv) == 1:

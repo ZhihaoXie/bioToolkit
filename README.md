@@ -1,4 +1,4 @@
-﻿# bio_scripts instruction
+﻿# biotoolkit instruction
 
 tag： bioinformatics
 
@@ -6,7 +6,7 @@ tag： bioinformatics
 
 Some scripts for bioinformatics.
 
-# 安装依赖
+# Dependencies
 
 - perl (>= v5.10)
   - bioperl
@@ -16,17 +16,17 @@ Some scripts for bioinformatics.
   - bcbio-gff >=0.6.6
   - loguru
 
-备注，在使用这些脚本之前，请先安装Perl、Python3。
+ Note: Before using these scripts, please install Perl and Python 3. 
 
-# 使用说明
+# Usage
 
 ## biotoolkit.py
 
-查看说明： `python biotoolkit -h`
+Usage: `python biotoolkit.py -h`
 
 ```
 usage: biotoolkit [-h] [-v]
-                  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search,geneStats}
+                  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search,geneStats,translate}
                   ...
 
 optional arguments:
@@ -34,7 +34,7 @@ optional arguments:
   -v, --version         show program's version number and exit
 
 subcommands:
-  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search,geneStats}     
+  {gbk2fa,gbk2gff,fq2fa,fa2bed,lengthStats,stats,cutHead10Fastq,getGeneFromGFF3,getGeneFromGBK,gbkGetGeneRegionByName,geneRegion,chooseseq,search,geneStats,translate}
                         Desired action to perform
     gbk2fa              genbank convert to fasta format. gzip format is not
                         supported.
@@ -43,7 +43,8 @@ subcommands:
                         supported.
     fa2bed              fasta file convert to bed file
     lengthStats         length stats of fasta file. output to stdout
-    stats               stats of fasta file. output to stdout
+    stats               stats of fasta file, include total length, average
+                        length, gc, N50. output to stdout
     cutHead10Fastq      trim 10 bp from head ends for fastq
     getGeneFromGFF3     get gene by CDS from gff3 and genome
     getGeneFromGBK      extract protein or nucleotide seq of gene from genbank
@@ -54,31 +55,51 @@ subcommands:
     search              search the location of sub-seq in the genome. print to
                         stdout
     geneStats           gene stats of genbank
+    translate           translate cds to protein
 ```
 
-## download_kegg_picture.pl
+The subcommand can obtain parameter help information through -h.
 
-当你用 ko number 做完 pathway mapping，你可能想要下载 pathway 图，那么这个脚本将会帮助你。
+Example:
 
-用法： `perl download_kegg_picture.pl -i mapid_file -u url -o out_dir`
+```
+$ python biotoolkit.py translate -h
+usage: biotoolkit translate [-h] [-i CDS] [-o PROTEIN] [-c CODING_TABLE]
 
-mapid_file 是包含 ko number 的文件，如 ko00710
+optional arguments:
+  -h, --help       show this help message and exit
+  -i CDS           cds sequences, fasta format
+  -o PROTEIN       protein sequences as output, fasta format
+  -c CODING_TABLE  codon table, default is 1
+  
+$ python biotoolkit.py translate -i ./sequence.fasta -o p.fa -c 11
+```
 
-URL 类似这样： <http://www.genome.jp/kegg-bin/show_pathway?144541224825059>
 
-out_dir 则是图片输出结果的目录。
 
-拓展： [KEGG](http://www.genome.jp/kegg/)
+## Other scripts
 
-## calc_SNP_Coregene.pl
+### download_kegg_picture.pl
 
-统计多物种多序列比对后不同物种与参考物种的核心基因的SNP数目。也适用于其他多核酸序列比对后统计SNP数目。多序列比对建议使用软件muscle，比对结果是比对后的fasta格式，以".mus"为后缀。
+When you use ko number to path mapping for KEGG, you may want to download the path map. This script will help you.
+Usage: ` perl download_kegg_picture.pl -i mapid_file -u url -o out_dir`
+- mapid_ File is a file containing ko number, such as ko00710
+- the URL looks like this:< http://www.genome.jp/kegg-bin/show_pathway?144541224825059 >
+out_ Dir is the directory of image output results.
 
-fasta seq ID 格式为"species_id|gene_id"，如："E.coli|gene1"。list file只包含species_id，且每一个species_id为一行，参考序列的species_id须在第一行。
+expand: [KEGG](http://www.genome.jp/kegg/)
 
-用法： `perl calc_SNP_Coregene.pl <list> <in_dir> > output`
+### calc_SNP_Coregene.pl
 
-## split_fasta.py
+Count the number of SNP of core genes of different species and reference species after multi-sequence alignment of multi species. It is also applicable to statistics of SNP number after sequences alignment of other polynucleic acids. It is recommended to use muscle software for multi-sequences alignment. The alignment result is in the fasta format after alignment, with ". mus" as the suffix.
+
+Fasta format seq ID is "specifics_id | gene_id", such as "E.coli | gene1". 
+
+The list file contains only species id, and each ID is a line, and sequence ID of reference must be in the first line.
+
+Usage： `perl calc_SNP_Coregene.pl <list> <in_dir> > output`
+
+### split_fasta.py
 
 Split a multiFASTA file by number or chunks or file size
 
@@ -101,7 +122,7 @@ arguments:
                         Output directory (default: .)
 ```
 
-## name2taxid.py
+### name2taxid.py
 
 Query taxonomy id by scientific name from names.dmp
 
@@ -117,7 +138,7 @@ optional arguments:
   -qf QUERYFILE  query sci name file, one line as a name, -q and -qf conflict
 ```
 
-## run_multitask.py
+### run_multitask.py
 
 Execute shell scripts in parallel
 
@@ -125,7 +146,7 @@ Execute shell scripts in parallel
 Usage: python run_multitask.py <bash_cmd.sh> [task_number]
 ```
 
-## multiprocessing_run_cmd.py
+### multiprocessing_run_cmd.py
 
 Execute shell scripts in parallel, each line is a command.
 
