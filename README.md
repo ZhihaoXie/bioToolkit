@@ -75,9 +75,27 @@ optional arguments:
 $ python biotoolkit.py translate -i ./sequence.fasta -o p.fa -c 11
 ```
 
-
-
 ## Other scripts
+
+### `scripts/get_metadata_cif.py`
+
+批量分析mmCIF文件获取蛋白质元数据并输出表格
+
+Usage：
+
+```
+# 分析单个文件
+python get_metadata_cif.py 1ake.cif.gz -o results.csv
+  
+# 分析多个文件
+python get_metadata_cif.py file1.cif file2.cif.gz file3.cif -o summary.xlsx
+
+# 分析整个目录（递归）
+python get_metadata_cif.py /path/to/pdb/structures -o pdb_catalog.csv
+
+# 分析当前目录（不递归）
+python get_metadata_cif.py . --no-recursive -o local.csv
+```
 
 ### download_kegg_picture.pl
 
