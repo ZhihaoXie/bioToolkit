@@ -10,7 +10,9 @@ import os
 import gzip
 import tempfile
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def extract_metadata_biopython(cif_file_path: str) -> Dict:
@@ -80,6 +82,11 @@ def extract_metadata_biopython(cif_file_path: str) -> Dict:
                 "poly_type": None,
                 "description": None,
             }
+            # 示例:
+            # 'entities': [{'id': '1', 'type': 'polymer', 'poly_type': 'polypeptide(L)', 'description': 'LYSOZYME'},
+            # {'id': '2', 'type': 'non-polymer', 'poly_type': None, 'description': 'CHLORIDE ION'},
+            # {'id': '3', 'type': 'non-polymer', 'poly_type': None, 'description': 'BETA-MERCAPTOETHANOL'},
+            # {'id': '4', 'type': 'water', 'poly_type': None, 'description': 'water'}]
 
             if etype == "polymer":
                 poly_types = mmcif_dict.get("_entity_poly.type", [])
@@ -117,7 +124,7 @@ def classify_complex_type_biopython(metadata: Dict) -> Dict[str, str]:
         "has_dna": False,
         "has_rna": False,
         "has_ligand": False,
-        "oligomer_state": "单体/未知",
+        "oligomer_state": "未知",
         "num_entities": len(metadata["entities"]),
         "num_polypeptides": 0,
         "num_dna_chains": 0,
@@ -135,7 +142,7 @@ def classify_complex_type_biopython(metadata: Dict) -> Dict[str, str]:
 
     unique_poly_types = set(polymer_types)
     classification["num_polypeptides"] = sum(
-        1 for t in polymer_types if "polypeptide" in t
+        1 for t in polymer_types if "polypeptide" in t or "polypeptide(L)" in t
     )
     classification["num_dna_chains"] = sum(
         1 for t in polymer_types if "deoxyribonucleotide" in t
@@ -151,7 +158,11 @@ def classify_complex_type_biopython(metadata: Dict) -> Dict[str, str]:
     classification["has_rna"] = any("ribonucleotide" in t for t in unique_poly_types)
     classification["has_ligand"] = "non-polymer" in entity_types
 
-    if classification["num_polypeptides"] > 1:
+    if classification["num_polypeptides"] == 0:
+        classification["oligomer_state"] = "无多肽链"
+    elif classification["num_polypeptides"] == 1:
+        classification["oligomer_state"] = "单体"
+    elif classification["num_polypeptides"] > 1:
         if len(set(t for t in polymer_types if "polypeptide" in t)) == 1:
             classification["oligomer_state"] = (
                 f"同{classification['num_polypeptides']}聚体"
@@ -255,23 +266,61 @@ def process_single_file(cif_file_path: str) -> Dict:
 
 
 def batch_process_mmcif_files(
-    cif_files: List[str], output_file: str = None
+    cif_files: List[str], output_file: Optional[str] = None, max_workers: int = 4
 ) -> pd.DataFrame:
     """
     批量处理多个mmCIF文件并输出表格
+    支持多线程处理，默认线程数为4
     """
     if not cif_files:
         raise ValueError("未提供任何mmCIF文件")
 
-    results = []
     total = len(cif_files)
+    print(f"开始批量处理 {total} 个文件，使用 {max_workers} 个线程...", file=sys.stderr)
 
-    print(f"开始批量处理 {total} 个文件...", file=sys.stderr)
+    results_map = {}
+    # 并行提交任务
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_file = {
+            executor.submit(process_single_file, cif): cif for cif in cif_files
+        }
 
-    for i, cif_file in enumerate(cif_files, 1):
-        print(f"[{i}/{total}] 处理: {cif_file}", file=sys.stderr)
-        row = process_single_file(cif_file)
-        results.append(row)
+        completed = 0
+        for future in as_completed(future_to_file):
+            completed += 1
+            cif = future_to_file[future]
+            try:
+                row = future.result()
+            except Exception as e:
+                # process_single_file 已经处理了大部分异常，这里作为兜底
+                row = {
+                    "pdb_id": os.path.basename(cif)
+                    .replace(".cif", "")
+                    .replace(".gz", ""),
+                    "file_name": os.path.basename(cif),
+                    "method": None,
+                    "resolution": None,
+                    "deposition_date": None,
+                    "complex_type": "解析失败",
+                    "oligomer_state": None,
+                    "num_entities": None,
+                    "num_polypeptides": None,
+                    "num_dna_chains": None,
+                    "num_rna_chains": None,
+                    "has_ligand": None,
+                    "entity_summary": str(e),
+                    "status": "failed",
+                }
+                print(f"警告: 处理 {cif} 时抛出异常: {e}", file=sys.stderr)
+
+            results_map[cif] = row
+            print(
+                f"[{completed}/{total}] 完成: {cif} 状态: {row.get('status','unknown')}",
+                file=sys.stderr,
+            )
+
+    # 保持输入文件顺序
+    results = [results_map.get(f) for f in cif_files]
 
     df = pd.DataFrame(results)
 
@@ -364,6 +413,9 @@ def main():
         default="mmcif_summary.csv",
     )
     parser.add_argument("--no-recursive", action="store_true", help="不递归搜索子目录")
+    parser.add_argument(
+        "-t", "--threads", type=int, default=4, help="并行线程数，默认4"
+    )
 
     args = parser.parse_args()
 
@@ -394,7 +446,7 @@ def main():
         sys.exit(1)
 
     try:
-        df = batch_process_mmcif_files(cif_files, args.output)
+        df = batch_process_mmcif_files(cif_files, args.output, max_workers=args.threads)
 
         print("\n" + "=" * 60, file=sys.stderr)
         print("处理完成！统计摘要:", file=sys.stderr)
@@ -410,7 +462,6 @@ def main():
 
         print("\n结果预览（前5行）:", file=sys.stderr)
         print(df.head().to_string(index=False), file=sys.stderr)
-        print("", file=sys.stderr)
 
     except Exception as e:
         print(f"批量处理失败: {e}", file=sys.stderr)
